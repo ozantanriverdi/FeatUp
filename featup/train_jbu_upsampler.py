@@ -344,7 +344,7 @@ def my_app(cfg: DictConfig) -> None:
     dataset = get_dataset(
         cfg.pytorch_data_dir,
         cfg.dataset,
-        "train",
+        "val",
         transform=transform,
         target_transform=None,
         include_labels=False)
