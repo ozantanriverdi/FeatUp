@@ -11,3 +11,7 @@
 
 cd featup
 python3 train_implicit_upsampler.py
+cd ..
+git add .
+git commit -m "training results from cip pool"
+git push origin main
