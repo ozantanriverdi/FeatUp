@@ -176,7 +176,7 @@ def my_app(cfg: DictConfig) -> None:
             print(f"Did not find {output_location}, computing")
 
         if cfg.summarize:
-            writer = SummaryWriter(join(log_dir, str(datetime.now())))
+            writer = SummaryWriter(join(log_dir, str(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))))
 
         params = []
         dataset = JitteredImage(original_image, cfg.n_images, cfg.use_flips, cfg.max_zoom, cfg.max_pad)
