@@ -355,7 +355,7 @@ def my_app(cfg: DictConfig) -> None:
         SingleImageDataset(0, dataset, 1), 1, shuffle=False, num_workers=cfg.num_workers)
 
     tb_logger = TensorBoardLogger(log_dir, default_hp_metric=False)
-    callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_epochs=1)]
+    callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_val_epochs =1)]
 
     trainer = Trainer(
         accelerator='gpu',
