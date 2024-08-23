@@ -199,7 +199,7 @@ class JBUFeatUp(pl.LightningModule):
 
         self.avg.logall(self.log)
         if self.global_step < 10:
-            self.clip_gradients(opt, gradient_clip_val=.0001, gradient_clip_algorithm="norm")
+            torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=0.0001)
 
         opt.step()
 
