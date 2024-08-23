@@ -13,10 +13,10 @@ Global seed set to 0
   warnings.warn(_create_warning_msg(
 Error executing job with overrides: []
 Traceback (most recent call last):
-  File "train_jbu_upsampler.py", line 358, in my_app
-    callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_epochs=1)]
-TypeError: __init__() got an unexpected keyword argument 'every_n_epochs'
+  File "train_jbu_upsampler.py", line 360, in my_app
+    trainer = Trainer(
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/env_vars_connector.py", line 40, in insert_env_defaults
+    return fn(self, **kwargs)
+TypeError: __init__() got an unexpected keyword argument 'strategy'
 
 Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
-To github.com:ozantanriverdi/FeatUp.git
-   5bc174a..367f444  main -> main
