@@ -289,7 +289,7 @@ class JBUFeatUp(pl.LightningModule):
         if self.predicted_uncertainty:
             all_params.extend(list(self.scale_net.parameters()))
 
-        return torch.optim.NAdam(all_params, lr=self.lr)
+        return torch.optim.Adam(all_params, lr=self.lr)
 
 
 @hydra.main(config_path="configs", config_name="jbu_upsampler.yaml")
