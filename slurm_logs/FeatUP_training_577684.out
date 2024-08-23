@@ -24,3 +24,22 @@ lr: 0.001
 ../
 [2024-08-23 22:28:53,197][timm.models.hub][INFO] - Downloading: "https://storage.googleapis.com/vit_models/augreg/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz" to /home/t/tanriverdi/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz
 
+[main fa1460b] training results from cip pool
+ Committer: Ozan Ilgin Tanriverdi <tanriverdi@cipollino.cip.ifi.lmu.de>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 5 files changed, 51 insertions(+), 15 deletions(-)
+ delete mode 100644 featup/pytorch-data/cocostuff/annotations/get_names.py
+ create mode 100644 featup/train_jbu_upsampler.log
+ create mode 100644 slurm_logs/FeatUP_training_577684.err
+ create mode 100644 slurm_logs/FeatUP_training_577684.out
