@@ -1,5 +1,5 @@
-slurmstepd-chondrit: error: Unable to create TMPDIR [/tmp/user/32398]: Permission denied
-slurmstepd-chondrit: error: Setting TMPDIR to /tmp
+slurmstepd-dacit: error: Unable to create TMPDIR [/tmp/user/32398]: Permission denied
+slurmstepd-dacit: error: Setting TMPDIR to /tmp
 train_jbu_upsampler.py:295: UserWarning: 
 The version_base parameter is not specified.
 Please specify a compatability version level, or None.
@@ -17,8 +17,6 @@ Traceback (most recent call last):
     trainer = Trainer(
   File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/env_vars_connector.py", line 40, in insert_env_defaults
     return fn(self, **kwargs)
-TypeError: __init__() got an unexpected keyword argument 'strategy'
+TypeError: __init__() got an unexpected keyword argument 'reload_dataloaders_every_n_epochs'
 
 Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
-To github.com:ozantanriverdi/FeatUp.git
-   f91447a..ef1881d  main -> main
