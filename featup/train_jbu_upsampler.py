@@ -358,9 +358,9 @@ def my_app(cfg: DictConfig) -> None:
     callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_val_epochs =1)]
 
     trainer = Trainer(
-        accelerator='gpu',
-        strategy="ddp",
-        devices=cfg.num_gpus,
+        accelerator='ddp',
+        #strategy="ddp",
+        gpus =cfg.num_gpus,
         max_epochs=cfg.epochs,
         logger=tb_logger,
         val_check_interval=100,
