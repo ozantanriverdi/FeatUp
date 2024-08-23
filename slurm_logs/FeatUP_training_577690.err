@@ -20,3 +20,5 @@ Traceback (most recent call last):
 FileNotFoundError: [Errno 2] No such file or directory: '/pytorch-data/cocostuff/curated/val2017/Coco164kFull_Stuff_Coarse.txt'
 
 Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+To github.com:ozantanriverdi/FeatUp.git
+   fa1460b..1eeb4e1  main -> main
