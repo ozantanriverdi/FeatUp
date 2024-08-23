@@ -1,0 +1,32 @@
+output_root: ../
+pytorch_data_dir: /pytorch-data
+submitting_to_aml: false
+summarize: true
+experiment_name: exp1
+dataset: sample
+split: val
+partition: 0
+total_partitions: 1
+model_type: maskclip
+activation_type: token
+outlier_detection: true
+downsampler_type: attention
+blur_attn: true
+mag_tv_weight: 0.05
+mag_weight: 0.001
+color_feats: true
+pca_batch: 50
+proj_dim: 128
+max_pad: 30
+use_flips: true
+max_zoom: 1.8
+blur_pin: 0.1
+n_freqs: 30
+param_type: implicit
+use_norm: false
+steps: 1200
+n_images: 3000
+
+../
+Did not find ../feats/exp1/sample/val/maskclip/bird_left.pth, computing
+Did not find ../feats/exp1/sample/val/maskclip/bird_right.pth, computing
