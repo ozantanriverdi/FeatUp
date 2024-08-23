@@ -10,7 +10,7 @@
 
 
 cd featup
-python3 train_implicit_upsampler.py
+python3 train_jbu_upsampler.py
 cd ..
 git add .
 git commit -m "training results from cip pool"

@@ -1,0 +1,22 @@
+slurmstepd-cipollino: error: Unable to create TMPDIR [/tmp/user/32398]: Permission denied
+slurmstepd-cipollino: error: Setting TMPDIR to /tmp
+train_jbu_upsampler.py:295: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path="configs", config_name="jbu_upsampler.yaml")
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 0
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "train_jbu_upsampler.py", line 344, in my_app
+    dataset = get_dataset(
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/datasets/util.py", line 48, in get_dataset
+    return Coco(dataroot, split, transform, target_transform, include_labels=include_labels)
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/datasets/COCO.py", line 75, in __init__
+    with open(join(self.root, "curated", split_dir, self.image_list), "r") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/pytorch-data/cocostuff/curated/val2017/Coco164kFull_Stuff_Coarse.txt'
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
