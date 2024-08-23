@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "train_implicit_upsampler.py", line 15, in <module>
+    from pytorch_lightning import seed_everything
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/__init__.py", line 25, in <module>
+    from lightning_fabric.utilities.seed import seed_everything  # noqa: E402
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/__init__.py", line 30, in <module>
+    from lightning_fabric.fabric import Fabric  # noqa: E402
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/fabric.py", line 44, in <module>
+    from lightning_fabric.accelerators.accelerator import Accelerator
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/accelerators/__init__.py", line 15, in <module>
+    from lightning_fabric.accelerators.accelerator import Accelerator
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/accelerators/accelerator.py", line 19, in <module>
+    from lightning_fabric.accelerators.registry import _AcceleratorRegistry
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/accelerators/registry.py", line 18, in <module>
+    from lightning_fabric.utilities.exceptions import MisconfigurationException
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/utilities/__init__.py", line 16, in <module>
+    from lightning_fabric.utilities.apply_func import move_data_to_device
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/utilities/apply_func.py", line 25, in <module>
+    from lightning_fabric.utilities.types import _DEVICE
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/lightning_fabric/utilities/types.py", line 33, in <module>
+    from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau  # noqa: F401
+ImportError: cannot import name 'LRScheduler' from 'torch.optim.lr_scheduler' (/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/optim/lr_scheduler.py)

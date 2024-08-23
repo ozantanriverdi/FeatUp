@@ -234,7 +234,7 @@ def my_app(cfg: DictConfig) -> None:
                                                  device=feats.device,
                                                  dtype=feats.dtype)
 
-        optim = torch.optim.NAdam(params)
+        optim = torch.optim.Adam(params)
 
         for step in tqdm(range(steps), f"Image {img_num} of {partition_size}"):
             for i in range(batch_size // inner_batch):
@@ -277,7 +277,7 @@ def my_app(cfg: DictConfig) -> None:
                     loss += cfg.mag_tv_weight * mag_tv
 
                 if cfg.blur_pin > 0.0:
-                    blur_pin_loss = (gaussian_blur2d(hr_feats, 5, (1.0, 1.0)) - hr_feats).square().mean()
+                    blur_pin_loss = (gaussian_blur2d(hr_feats, (5, 5), (1.0, 1.0)) - hr_feats).square().mean()
                     loss += cfg.blur_pin * blur_pin_loss
 
                 loss.backward()

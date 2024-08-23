@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "train_implicit_upsampler.py", line 15, in <module>
+    from pytorch_lightning import seed_everything
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/__init__.py", line 21, in <module>
+    from pytorch_lightning.callbacks import Callback  # noqa: E402
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/callbacks/__init__.py", line 26, in <module>
+    from pytorch_lightning.callbacks.stochastic_weight_avg import StochasticWeightAveraging
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/callbacks/stochastic_weight_avg.py", line 26, in <module>
+    from pytorch_lightning.trainer.optimizers import _get_default_scheduler_config
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/trainer/__init__.py", line 18, in <module>
+    from pytorch_lightning.trainer.trainer import Trainer
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 26, in <module>
+    from pytorch_lightning.accelerators import Accelerator
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/accelerators/__init__.py", line 13, in <module>
+    from pytorch_lightning.accelerators.accelerator import Accelerator  # noqa F401
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/accelerators/accelerator.py", line 25, in <module>
+    from pytorch_lightning.plugins.precision import ApexMixedPrecisionPlugin, NativeMixedPrecisionPlugin, PrecisionPlugin
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/plugins/__init__.py", line 2, in <module>
+    from pytorch_lightning.plugins.plugins_registry import (  # noqa: F401
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/plugins/plugins_registry.py", line 21, in <module>
+    from pytorch_lightning.plugins.training_type.training_type_plugin import TrainingTypePlugin
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/plugins/training_type/__init__.py", line 1, in <module>
+    from pytorch_lightning.plugins.training_type.ddp import DDPPlugin  # noqa: F401
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/plugins/training_type/ddp.py", line 47, in <module>
+    from hydra.core.hydra_config import HydraConfig
+ModuleNotFoundError: No module named 'hydra.core'; 'hydra' is not a package

@@ -1,0 +1,4 @@
+  File "train_implicit_upsampler.py", line 362
+    scales = np.array(scales, dtype=np.float32)
+                                              ^
+TabError: inconsistent use of tabs and spaces in indentation

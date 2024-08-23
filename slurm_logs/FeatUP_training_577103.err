@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "train_implicit_upsampler.py", line 15, in <module>
+    from pytorch_lightning import seed_everything
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/__init__.py", line 20, in <module>
+    from pytorch_lightning import metrics  # noqa: E402
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/metrics/__init__.py", line 15, in <module>
+    from pytorch_lightning.metrics.classification import (  # noqa: F401
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/metrics/classification/__init__.py", line 14, in <module>
+    from pytorch_lightning.metrics.classification.accuracy import Accuracy  # noqa: F401
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/metrics/classification/accuracy.py", line 18, in <module>
+    from pytorch_lightning.metrics.utils import deprecated_metrics
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/pytorch_lightning/metrics/utils.py", line 22, in <module>
+    from torchmetrics.utilities.data import get_num_classes as _get_num_classes
+ImportError: cannot import name 'get_num_classes' from 'torchmetrics.utilities.data' (/home/t/tanriverdi/.local/lib/python3.8/site-packages/torchmetrics/utilities/data.py)

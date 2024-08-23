@@ -1,1 +1,13 @@
 .env
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+*.egg-info/
+
+adaptive_conv_cpp_impl.cpython-38-x86_64-linux-gnu.so
+adaptive_conv_cuda_impl.cpython-38-x86_64-linux-gnu.so
+build/
+
+featup/pytorch-data/*

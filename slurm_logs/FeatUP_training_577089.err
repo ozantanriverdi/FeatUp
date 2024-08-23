@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "train_implicit_upsampler.py", line 13, in <module>
+    from kornia.filters import gaussian_blur2d
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/kornia/__init__.py", line 3, in <module>
+    from . import filters
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/kornia/filters/__init__.py", line 3, in <module>
+    from .bilateral import BilateralBlur, JointBilateralBlur, bilateral_blur, joint_bilateral_blur
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/kornia/filters/bilateral.py", line 8, in <module>
+    from .kernels import _unpack_2d_ks, get_gaussian_kernel2d
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/kornia/filters/kernels.py", line 11, in <module>
+    from kornia.utils import deprecated
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/kornia/utils/__init__.py", line 4, in <module>
+    from .helpers import (
+  File "/home/t/tanriverdi/.local/lib/python3.8/site-packages/kornia/utils/helpers.py", line 11, in <module>
+    from torch.linalg import inv_ex
+ImportError: cannot import name 'inv_ex' from 'torch.linalg' (/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/linalg/__init__.py)

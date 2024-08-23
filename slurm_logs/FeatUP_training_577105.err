@@ -1,0 +1,26 @@
+train_implicit_upsampler.py:65: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path="configs", config_name="implicit_upsampler.yaml")
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 0
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "train_implicit_upsampler.py", line 115, in my_app
+    model, _, dim = get_featurizer(cfg.model_type, activation_type=cfg.activation_type, output_root=cfg.output_root)
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/featurizers/util.py", line 36, in get_featurizer
+    from .MaskCLIP import MaskCLIPFeaturizer
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/featurizers/MaskCLIP.py", line 5, in <module>
+    from featup.featurizers.maskclip import clip
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/featurizers/maskclip/__init__.py", line 1, in <module>
+    from .clip import *
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/featurizers/maskclip/clip.py", line 14, in <module>
+    from .simple_tokenizer import SimpleTokenizer as _Tokenizer
+  File "/home/t/tanriverdi/Desktop/FeatUp/featup/featurizers/maskclip/simple_tokenizer.py", line 7, in <module>
+    import ftfy
+ModuleNotFoundError: No module named 'ftfy'
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

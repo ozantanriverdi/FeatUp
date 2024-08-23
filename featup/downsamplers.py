@@ -52,7 +52,7 @@ class AttentionDownsampler(torch.nn.Module):
         b, c, h, w = hr_feats.shape
 
         if self.blur_attn:
-            inputs = gaussian_blur2d(hr_feats, 5, (1.0, 1.0))
+            inputs = gaussian_blur2d(hr_feats, (5, 5), (1.0, 1.0))
         else:
             inputs = hr_feats
 
