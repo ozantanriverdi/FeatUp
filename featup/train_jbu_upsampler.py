@@ -366,7 +366,7 @@ def my_app(cfg: DictConfig) -> None:
         val_check_interval=100,
         log_every_n_steps=10,
         callbacks=callbacks,
-        reload_dataloaders_every_n_epochs=1,
+        reload_dataloaders_every_epoch=True,
     )
 
     gc.collect()
