@@ -20,3 +20,5 @@ Traceback (most recent call last):
 TypeError: __init__() got an unexpected keyword argument 'reload_dataloaders_every_n_epochs'
 
 Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+To github.com:ozantanriverdi/FeatUp.git
+   e3cc5db..14f1bd5  main -> main

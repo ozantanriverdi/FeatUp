@@ -1,0 +1,26 @@
+output_root: ../
+pytorch_data_dir: pytorch-data
+submitting_to_aml: false
+dataset: cocostuff
+model_type: vit
+activation_type: token
+outlier_detection: true
+upsampler_type: jbu_stack
+downsampler_type: attention
+max_pad: 20
+max_zoom: 2
+n_jitters: 5
+random_projection: 30
+crf_weight: 0.001
+filter_ent_weight: 0.0
+tv_weight: 0.0
+implicit_sup_weight: 1.0
+batch_size: 2
+epochs: 1
+num_gpus: 1
+num_workers: 24
+lr: 0.001
+
+../
+[2024-08-24 00:08:16,349][root][INFO] - Added key: store_based_barrier_key:1 to store for rank: 0
+Validation sanity check: 0it [00:00, ?it/s]Validation sanity check:   0%|          | 0/1 [00:00<?, ?it/s]Validation sanity check: 100%|██████████| 1/1 [00:01<00:00,  1.70s/it]                                                                      Training: 0it [00:00, ?it/s]Training:   0%|          | 0/2525 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/2525 [00:00<?, ?it/s] Epoch 0:   0%|          | 0/2525 [00:05<?, ?it/s]
