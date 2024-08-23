@@ -90,3 +90,8 @@ Traceback (most recent call last):
 AttributeError: 'JBUFeatUp' object has no attribute 'clip_gradients'
 
 Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+remote: warning: See https://gh.io/lfs for more information.        
+remote: warning: File checkpoints/jbu/checkpoints/jbu/vit_jbu_stack_cocostuff_attention_crf_0.001_tv_0.0_ent_0.0_0.ckpt is 83.39 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To github.com:ozantanriverdi/FeatUp.git
+   7193889..3a84681  main -> main

@@ -1,0 +1,98 @@
+slurmstepd-cipollino: error: Unable to create TMPDIR [/tmp/user/32398]: Permission denied
+slurmstepd-cipollino: error: Setting TMPDIR to /tmp
+train_jbu_upsampler.py:295: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path="configs", config_name="jbu_upsampler.yaml")
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 0
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/data/dataloader.py:474: UserWarning: This DataLoader will create 24 worker processes in total. Our suggested max number of worker in current system is 14, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+Global seed set to 0
+initializing ddp: GLOBAL_RANK: 0, MEMBER: 1/1
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All DDP processes registered. Starting ddp with 1 processes
+----------------------------------------------------------------------------------------------------
+
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+Set SLURM handle signals.
+
+  | Name        | Type                 | Params
+-----------------------------------------------------
+0 | model       | Sequential           | 21.7 M
+1 | upsampler   | JBUStack             | 172 K 
+2 | downsampler | AttentionDownsampler | 897   
+3 | scale_net   | ScaleNet             | 385   
+4 | crf         | SampledCRFLoss       | 0     
+5 | tv          | TVLoss               | 0     
+-----------------------------------------------------
+174 K     Trainable params
+21.7 M    Non-trainable params
+21.8 M    Total params
+87.362    Total estimated model params size (MB)
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/nn/functional.py:3454: UserWarning: Default upsampling behavior when mode=bilinear is changed to align_corners=False since 0.4.0. Please specify align_corners=True if the old behavior is desired. See the documentation of nn.Upsample for details.
+  warnings.warn(
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/nn/functional.py:3502: UserWarning: The default behavior for interpolate/upsample with float scale_factor changed in 1.6.0 to align with other frameworks/libraries, and now uses scale_factor directly, instead of relying on the computed output size. If you wish to restore the old behavior, please set recompute_scale_factor=True. See the documentation of nn.Upsample for details. 
+  warnings.warn(
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+Global seed set to 0
+[W reducer.cpp:362] Warning: Grad strides do not match bucket view strides. This may indicate grad was not created according to the gradient layout contract, or that the param's strides changed since DDP was constructed.  This is not an error, but may impair performance.
+grad.sizes() = [1, 384, 1, 1], strides() = [384, 1, 384, 384]
+bucket_view.sizes() = [1, 384, 1, 1], strides() = [384, 1, 1, 1] (function operator())
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
+/home/t/tanriverdi/.local/lib/python3.8/site-packages/torch/utils/tensorboard/summary.py:324: DeprecationWarning: using `dtype=` in comparisons is only useful for `dtype=object` (and will do nothing for bool). This operation will fail in the future.
+  cum_counts = np.cumsum(np.greater(counts, 0, dtype=np.int32))
