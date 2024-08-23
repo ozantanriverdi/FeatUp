@@ -30,3 +30,22 @@ n_images: 3000
 ../
 Did not find ../feats/exp1/sample/val/maskclip/bird_left.pth, computing
 Did not find ../feats/exp1/sample/val/maskclip/bird_right.pth, computing
+[main 89b98c3] training results from cip pool
+ Committer: Ozan Ilgin Tanriverdi <tanriverdi@adakit.cip.ifi.lmu.de>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 6 files changed, 105 insertions(+)
+ create mode 100644 logs/exp1/sample/val/maskclip/2024-08-23_07-55-06/events.out.tfevents.1724392506.adakit.cip.ifi.lmu.de.2891049.0
+ create mode 100644 logs/exp1/sample/val/maskclip/2024-08-23_08-04-11/events.out.tfevents.1724393051.adakit.cip.ifi.lmu.de.2891049.1
+ create mode 100644 slurm_logs/FeatUP_training_577183.err
+ create mode 100644 slurm_logs/FeatUP_training_577183.out
