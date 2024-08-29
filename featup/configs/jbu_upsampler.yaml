@@ -12,7 +12,7 @@ activation_type: "token"
 
 # Upsampling args
 outlier_detection: True
-upsampler_type: "unet_guided" # jbu_stack | transformer | unet_guided | bilinear
+upsampler_type: "jbu_stack" # jbu_stack | transformer | unet_guided | bilinear
 downsampler_type: "attention"
 max_pad: 20
 max_zoom: 2
