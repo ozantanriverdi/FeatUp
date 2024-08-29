@@ -452,7 +452,7 @@ def my_app(cfg: DictConfig) -> None:
 
     trainer = Trainer(
         accelerator='gpu',
-        strategy="ddp",
+        # strategy="ddp",
         devices=cfg.num_gpus,
         max_epochs=cfg.epochs,
         logger=tb_logger,

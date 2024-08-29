@@ -24,7 +24,7 @@ git push origin main
 
 
 # 2. loss = simple
-loss="simple"
+loss="simple_loss"
 cat <<EOF >featup/configs/jbu_upsampler.yaml
 # Environment Args
 output_root: '../'
@@ -71,9 +71,9 @@ EOF
 cd featup
 python3 train_jbu_upsampler.py
 cd ..
-# git add .
-# git commit -m "training results from cip pool"
-# git push origin main
+git add .
+git commit -m "training results from cip pool"
+git push origin main
 
 
 
@@ -126,9 +126,9 @@ EOF
 cd featup
 python3 train_jbu_upsampler.py
 cd ..
-# git add .
-# git commit -m "training results from cip pool"
-# git push origin main
+git add .
+git commit -m "training results from cip pool"
+git push origin main
 
 
 
@@ -181,9 +181,9 @@ EOF
 cd featup
 python3 train_jbu_upsampler.py
 cd ..
-# git add .
-# git commit -m "training results from cip pool"
-# git push origin main
+git add .
+git commit -m "training results from cip pool"
+git push origin main
 
 
 

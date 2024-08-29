@@ -37,4 +37,3 @@ hydra:
   run:
     dir: "."
   output_subdir: ~
-

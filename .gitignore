@@ -17,4 +17,4 @@ featup/pytorch-data/cocostuff/images/train2017/*
 featup/pytorch-data/cocostuff/images/val2017/*
 
 
-checkpoints/*
+checkpoints/
