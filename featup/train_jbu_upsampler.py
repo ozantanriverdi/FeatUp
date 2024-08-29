@@ -316,7 +316,7 @@ class JBUFeatUp(pl.LightningModule):
                 writer.add_image("jit_viz/hr_jit_feats", red_hr_jit_feats[0], self.global_step)
                 writer.add_image("jit_viz/down_jit_feats", red_down_jit_feats[0], self.global_step)
 
-                if self.val_step == 0:
+                if self.val_step == 25:
                     cwd = os.getcwd()
                     images_dir = join(cwd, f"images/{self.model_type}_{self.upsampler_name}_{self.loss}")
                     os.makedirs(images_dir, exist_ok=True)
@@ -438,7 +438,7 @@ def my_app(cfg: DictConfig) -> None:
         target_transform=None,
         include_labels=False)
     
-    val_dataset = TripleImageDataset(indices=[10, 20, 31], ds=dataset)
+    val_dataset = TripleImageDataset(indices=[23, 311, 449], ds=dataset)
 
     loader = DataLoader(
         dataset, cfg.batch_size, shuffle=True, num_workers=cfg.num_workers)
@@ -452,7 +452,7 @@ def my_app(cfg: DictConfig) -> None:
 
     trainer = Trainer(
         accelerator='gpu',
-        #strategy="ddp",
+        strategy="ddp",
         devices=cfg.num_gpus,
         max_epochs=cfg.epochs,
         logger=tb_logger,
