@@ -14,7 +14,7 @@ default_loss="multiview_loss"
 
 # 1. Default Experiment
 cd featup
-python demo.py
+python3 train_jbu_upsampler.py
 cd ..
 git add .
 git commit -m "training results from cip pool"
@@ -69,11 +69,11 @@ hydra:
 
 EOF
 cd featup
-python demo.py
+python3 train_jbu_upsampler.py
 cd ..
-git add .
-git commit -m "training results from cip pool"
-git push origin main
+# git add .
+# git commit -m "training results from cip pool"
+# git push origin main
 
 
 
@@ -124,11 +124,11 @@ hydra:
 
 EOF
 cd featup
-python demo.py
+python3 train_jbu_upsampler.py
 cd ..
-git add .
-git commit -m "training results from cip pool"
-git push origin main
+# git add .
+# git commit -m "training results from cip pool"
+# git push origin main
 
 
 
@@ -179,11 +179,11 @@ hydra:
 
 EOF
 cd featup
-python demo.py
+python3 train_jbu_upsampler.py
 cd ..
-git add .
-git commit -m "training results from cip pool"
-git push origin main
+# git add .
+# git commit -m "training results from cip pool"
+# git push origin main
 
 
 
