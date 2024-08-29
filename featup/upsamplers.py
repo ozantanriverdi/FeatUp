@@ -194,10 +194,17 @@ class JBULearnedRange(torch.nn.Module):
         self.feat_dim = feat_dim
 
         self.range_temp = nn.Parameter(torch.tensor(0.0))
+        # Before: (GB, feat_dim, GH, GW)
+        # After: (GB, key_dim, GH, GW)
         self.range_proj = torch.nn.Sequential(
+            # kernel, stride 1 -> each pixel processed independently, spatial
+            # dimensions (H, W) remain unchanged
             torch.nn.Conv2d(guidance_dim, key_dim, 1, 1),
+            # Introduces non-linearity to the model -> learning complex relationships
             torch.nn.GELU(),
+            # Robustness
             torch.nn.Dropout2d(.1),
+            # Two Conv Layers: Provide more capacity to learn complex feature transformations.
             torch.nn.Conv2d(key_dim, key_dim, 1, 1),
         )
 
@@ -210,6 +217,8 @@ class JBULearnedRange(torch.nn.Module):
 
         self.sigma_spatial = nn.Parameter(torch.tensor(1.0))
 
+    # This kernel measures the similarity between pixel values (e.g., color intensity 
+    # or other features). Pixels with similar values to the target pixel are given more weight.
     def get_range_kernel(self, x):
         GB, GC, GH, GW = x.shape
         proj_x = self.range_proj(x)
@@ -220,6 +229,8 @@ class JBULearnedRange(torch.nn.Module):
         pos_temp = self.range_temp.exp().clamp_min(1e-4).clamp_max(1e4)
         return F.softmax(pos_temp * torch.einsum("bchwp,bchw->bphw", queries, proj_x), dim=1)
 
+    # This kernel measures the spatial proximity between pixels in the neighborhood. 
+    # Pixels closer together are given more weight.
     def get_spatial_kernel(self, device):
         dist_range = torch.linspace(-1, 1, self.diameter, device=device)
         x, y = torch.meshgrid(dist_range, dist_range)
@@ -249,7 +260,7 @@ class JBULearnedRange(torch.nn.Module):
         result =  AdaptiveConv.apply(hr_source_padded, combined_kernel)
         return result
 
-
+# 172k
 class JBUStack(torch.nn.Module):
 
     def __init__(self, feat_dim, *args, **kwargs):
@@ -284,7 +295,196 @@ class Bilinear(torch.nn.Module):
     def forward(self, feats, img):
         _, _, h, w = img.shape
         return F.interpolate(feats, (h, w), mode="bilinear")
+    
+    
+# 20.6 M
+class TransformerUpsampler(nn.Module):
+    def __init__(self, input_dim=384, hidden_dim=512, num_heads=8, num_layers=6, dropout=0.1):
+        super(TransformerUpsampler, self).__init__()
+        
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        
+        # Embedding layer
+        self.embedding = nn.Linear(input_dim, hidden_dim)
+        
+        # Positional encoding
+        self.pos_encoding = PositionalEncoding(hidden_dim, dropout)
+        
+        # Transformer layers
+        encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads, dropout=dropout)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        
+        # Output projection
+        self.output_proj = nn.Linear(hidden_dim, input_dim)
+        
+        # Upsampling layers
+        # self.upsample = nn.Sequential(
+        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
+        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.PixelShuffle(2),
+        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
+        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.PixelShuffle(2),
+        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
+        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.PixelShuffle(2),
+        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
+        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.PixelShuffle(2),
+        # )
+        
+        # Final convolution
+        self.final_conv = nn.Conv2d(input_dim, input_dim, kernel_size=3, padding=1)
+        
+    def forward(self, x, img):
+        # Input shape: [1, 384, 14, 14]
+        batch_size, c, h, w = x.shape
+        
+        # Reshape and transpose for transformer input
+        x_trans = x.view(batch_size, c, -1).permute(2, 0, 1)  # [196, 1, 384]
+        
+        # Embedding and positional encoding
+        x_trans = self.embedding(x_trans)
+        x_trans = self.pos_encoding(x_trans)
+        
+        # Transformer encoding
+        x_trans = self.transformer_encoder(x_trans)
+        
+        # Output projection and reshape
+        x_trans = self.output_proj(x_trans)
+        x_trans = x_trans.permute(1, 2, 0).view(batch_size, c, h, w)  # [1, 384, 14, 14]
+        
+        # Combine transformer output with original input
+        x = x + x_trans
+        
+        # Upsampling
+        x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
+        
+        # Final convolution
+        x = self.final_conv(x)
+        x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
+        x = self.final_conv(x)
+        x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
+        x = self.final_conv(x)
+        x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
+        x = self.final_conv(x)
+        
+        return x
 
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, dropout=0.1, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
+
+
+
+
+
+
+class DoubleConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.double_conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.GroupNorm(32, out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.GroupNorm(32, out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        return self.double_conv(x)
+
+class UNetUpsampler2(nn.Module):
+    def __init__(self, in_channels, out_channels, scale_factor=16):
+        super().__init__()
+        self.scale_factor = scale_factor
+
+        self.input_conv = DoubleConv(in_channels + 3, 64)
+        
+        self.down_convs = nn.ModuleList()
+        self.up_convs = nn.ModuleList()
+        
+        # Determine the number of downsampling steps based on input size
+        self.num_layers = min(int(math.log2(14)), 3)  # Maximum 3 downsampling steps for 14x14 input
+        
+        # Downsampling path
+        self.channels = [64, 128, 256, 512]
+        for i in range(self.num_layers):
+            self.down_convs.append(nn.Sequential(
+                nn.MaxPool2d(2),
+                DoubleConv(self.channels[i], self.channels[i+1])
+            ))
+
+        # Middle
+        self.middle_conv = DoubleConv(self.channels[self.num_layers], self.channels[self.num_layers])
+
+        # Upsampling path
+        for i in range(self.num_layers):
+            in_channels = self.channels[self.num_layers-i] + self.channels[self.num_layers-i-1]
+            out_channels = self.channels[self.num_layers-i-1]
+            self.up_convs.append(nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                DoubleConv(in_channels, out_channels)
+            ))
+
+        # Additional upsampling to reach the target scale factor
+        self.final_upsample = nn.Upsample(scale_factor=scale_factor // (2**self.num_layers), 
+                                          mode='bilinear', align_corners=True)
+        self.final_conv = nn.Conv2d(64, 384, kernel_size=1)
+
+    def forward(self, source, guidance):
+        _, _, h, w = source.shape
+        guidance_resized = F.interpolate(guidance, size=(h, w), mode='bilinear', align_corners=False)
+        x = torch.cat([source, guidance_resized], dim=1)
+
+        #print(f"Input shape: {x.shape}")
+
+        x1 = self.input_conv(x)
+        #print(f"After input conv: {x1.shape}")
+        
+        # Downsampling
+        x_down = [x1]
+        for i, down_conv in enumerate(self.down_convs):
+            x_down.append(down_conv(x_down[-1]))
+            #print(f"After down conv {i+1}: {x_down[-1].shape}")
+
+        # Middle
+        x = self.middle_conv(x_down[-1])
+        #print(f"After middle conv: {x.shape}")
+
+        # Upsampling
+        for i, up_conv in enumerate(self.up_convs):
+            x = up_conv[0](x)  # Upsample
+            #print(f"After upsample {i+1}: {x.shape}")
+            # Ensure the sizes match for skip connection
+            if x.size()[2:] != x_down[-(i+2)].size()[2:]:
+                x = F.interpolate(x, size=x_down[-(i+2)].size()[2:], mode='bilinear', align_corners=True)
+            x = torch.cat([x, x_down[-(i+2)]], dim=1)
+            #print(f"After concat {i+1}: {x.shape}")
+            x = up_conv[1](x)  # DoubleConv
+            #print(f"After up conv {i+1}: {x.shape}")
+
+        x = self.final_upsample(x)
+        #print(f"After final upsample: {x.shape}")
+        x = self.final_conv(x)
+        #print(f"Final output shape: {x.shape}")
+
+        return x
 
 def get_upsampler(upsampler, dim):
     if upsampler == 'bilinear':
@@ -299,5 +499,9 @@ def get_upsampler(upsampler, dim):
         return SAPAUpsampler(dim_x=dim)
     elif upsampler == 'ifa':
         return IFA(dim)
+    elif upsampler == "transformer":
+        return TransformerUpsampler(dim)
+    elif upsampler == 'unet_guided':
+        return UNetUpsampler2(dim, dim)
     else:
         raise ValueError(f"Unknown upsampler {upsampler}")

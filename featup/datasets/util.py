@@ -33,6 +33,20 @@ class SingleImageDataset(Dataset):
 
     def __getitem__(self, item):
         return self.ds[self.i]
+    
+
+class TripleImageDataset(Dataset):
+    def __init__(self, indices, ds, l=None):
+        self.ds = ds
+        self.indices = indices  # List of indices to be included in the subset
+        self.l = len(self.indices) if l is None else l
+
+    def __len__(self):
+        return self.l
+    
+    def __getitem__(self, index):
+        actual_index = self.indices[index]
+        return self.ds[actual_index]  # Return the item corresponding to the actual index
 
 
 def get_dataset(dataroot, name, split, transform, target_transform, include_labels):

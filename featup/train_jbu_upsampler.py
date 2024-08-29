@@ -5,6 +5,7 @@ import hydra
 import pytorch_lightning as pl
 import torch
 import torchvision.transforms as T
+import torch.nn.functional as F
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
 from pytorch_lightning import Trainer
@@ -12,11 +13,12 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch.utils.data import DataLoader
+from torch.utils.checkpoint import checkpoint
 from torchvision.transforms import InterpolationMode
 from os.path import join
 
 from featup.datasets.JitteredImage import apply_jitter, sample_transform
-from featup.datasets.util import get_dataset, SingleImageDataset
+from featup.datasets.util import get_dataset, SingleImageDataset, TripleImageDataset
 from featup.downsamplers import SimpleDownsampler, AttentionDownsampler
 from featup.featurizers.util import get_featurizer
 from featup.layers import ChannelNorm
@@ -26,7 +28,7 @@ from featup.util import pca, RollingAvg, unnorm, norm, prep_image
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-
+features = []
 class ScaleNet(torch.nn.Module):
 
     def __init__(self, dim):
@@ -59,6 +61,7 @@ class JBUFeatUp(pl.LightningModule):
                  upsampler,
                  downsampler,
                  chkpt_dir,
+                 loss
                  ):
         super().__init__()
         self.model_type = model_type
@@ -75,6 +78,11 @@ class JBUFeatUp(pl.LightningModule):
         self.filter_ent_weight = filter_ent_weight
         self.tv_weight = tv_weight
         self.chkpt_dir = chkpt_dir
+        self.val_step = 0
+        self.images = []
+        self.image_save = T.ToPILImage()
+        self.upsampler_name = upsampler
+        self.loss = loss
 
         self.model, self.patch_size, self.dim = get_featurizer(model_type, activation_type, num_classes=1000)
         for p in self.model.parameters():
@@ -126,84 +134,122 @@ class JBUFeatUp(pl.LightningModule):
                 img, _ = batch
             lr_feats = self.model(img)
 
-        full_rec_loss = 0.0
-        full_crf_loss = 0.0
-        full_entropy_loss = 0.0
-        full_tv_loss = 0.0
-        full_total_loss = 0.0
-        for i in range(self.n_jitters):
-            hr_feats = self.upsampler(lr_feats, img)
+        if self.loss == 'multiview_loss':
+            full_rec_loss = 0.0
+            full_crf_loss = 0.0
+            full_entropy_loss = 0.0
+            full_tv_loss = 0.0
+            full_total_loss = 0.0
+            for i in range(self.n_jitters):
+                hr_feats = self.upsampler(lr_feats, img)
+
+                if hr_feats.shape[2] != img.shape[2]:
+                    hr_feats = torch.nn.functional.interpolate(hr_feats, img.shape[2:], mode="bilinear")
+
+                with torch.no_grad():
+                    transform_params = sample_transform(
+                        True, self.max_pad, self.max_zoom, img.shape[2], img.shape[3])
+                    jit_img = apply_jitter(img, self.max_pad, transform_params)
+                    lr_jit_feats = self.model(jit_img)
+
+                if self.random_projection is not None:
+                    proj = torch.randn(lr_feats.shape[0],
+                                    lr_feats.shape[1],
+                                    self.random_projection, device=lr_feats.device)
+                    proj /= proj.square().sum(1, keepdim=True).sqrt()
+                else:
+                    proj = None
+
+                hr_jit_feats = apply_jitter(hr_feats, self.max_pad, transform_params)
+                proj_hr_feats = self.project(hr_jit_feats, proj)
+
+                down_jit_feats = self.project(self.downsampler(hr_jit_feats, jit_img), proj)
+
+                if self.predicted_uncertainty:
+                    scales = self.scale_net(lr_jit_feats)
+                    scale_factor = (1 / (2 * scales ** 2))
+                    mse = (down_jit_feats - self.project(lr_jit_feats, proj)).square()
+                    rec_loss = (scale_factor * mse + scales.log()).mean() / self.n_jitters
+                else:
+                    rec_loss = (self.project(lr_jit_feats, proj) - down_jit_feats).square().mean() / self.n_jitters
+
+                full_rec_loss += rec_loss.item()
+
+                if self.crf_weight > 0 and i == 0:
+                    crf_loss = self.crf(img, proj_hr_feats)
+                    full_crf_loss += crf_loss.item()
+                else:
+                    crf_loss = 0.0
+
+                if self.filter_ent_weight > 0.0:
+                    entropy_loss = entropy(self.downsampler.get_kernel())
+                    full_entropy_loss += entropy_loss.item()
+                else:
+                    entropy_loss = 0
+
+                if self.tv_weight > 0 and i == 0:
+                    tv_loss = self.tv(proj_hr_feats.square().sum(1, keepdim=True))
+                    full_tv_loss += tv_loss.item()
+                else:
+                    tv_loss = 0.0
+
+                loss = rec_loss + self.crf_weight * crf_loss + self.tv_weight * tv_loss - self.filter_ent_weight * entropy_loss
+                full_total_loss += loss.item()
+                self.manual_backward(loss)
+
+            self.avg.add("loss/crf", full_crf_loss)
+            self.avg.add("loss/ent", full_entropy_loss)
+            self.avg.add("loss/tv", full_tv_loss)
+            self.avg.add("loss/rec", full_rec_loss)
+            self.avg.add("loss/total", full_total_loss)
+
+            if self.global_step % 100 == 0:
+                self.trainer.save_checkpoint(self.chkpt_dir[:-5] + '/' + self.chkpt_dir[:-5] + f'_{self.global_step}.ckpt')
+
+            self.avg.logall(self.log)
+            if self.global_step < 10:
+                self.clip_gradients(opt, gradient_clip_val=.0001, gradient_clip_algorithm="norm")
+
+            opt.step()
+
+    
+        elif self.loss == 'simple_loss':
+            # Use checkpointing for the upsampler to save memory
+            hr_feats = checkpoint(self.upsampler, lr_feats, img)
 
             if hr_feats.shape[2] != img.shape[2]:
                 hr_feats = torch.nn.functional.interpolate(hr_feats, img.shape[2:], mode="bilinear")
 
-            with torch.no_grad():
-                transform_params = sample_transform(
-                    True, self.max_pad, self.max_zoom, img.shape[2], img.shape[3])
-                jit_img = apply_jitter(img, self.max_pad, transform_params)
-                lr_jit_feats = self.model(jit_img)
+            down_hr_feats = self.downsampler(hr_feats, img)
+            rec_loss = (lr_feats - down_hr_feats).square().mean()
 
-            if self.random_projection is not None:
-                proj = torch.randn(lr_feats.shape[0],
-                                   lr_feats.shape[1],
-                                   self.random_projection, device=lr_feats.device)
-                proj /= proj.square().sum(1, keepdim=True).sqrt()
-            else:
-                proj = None
+            crf_loss = 0.0
+            if self.crf_weight > 0:
+                crf_loss = self.crf(img, hr_feats)
 
-            hr_jit_feats = apply_jitter(hr_feats, self.max_pad, transform_params)
-            proj_hr_feats = self.project(hr_jit_feats, proj)
-
-            down_jit_feats = self.project(self.downsampler(hr_jit_feats, jit_img), proj)
-
-            if self.predicted_uncertainty:
-                scales = self.scale_net(lr_jit_feats)
-                scale_factor = (1 / (2 * scales ** 2))
-                mse = (down_jit_feats - self.project(lr_jit_feats, proj)).square()
-                rec_loss = (scale_factor * mse + scales.log()).mean() / self.n_jitters
-            else:
-                rec_loss = (self.project(lr_jit_feats, proj) - down_jit_feats).square().mean() / self.n_jitters
-
-            full_rec_loss += rec_loss.item()
-
-            if self.crf_weight > 0 and i == 0:
-                crf_loss = self.crf(img, proj_hr_feats)
-                full_crf_loss += crf_loss.item()
-            else:
-                crf_loss = 0.0
-
+            entropy_loss = 0.0
             if self.filter_ent_weight > 0.0:
                 entropy_loss = entropy(self.downsampler.get_kernel())
-                full_entropy_loss += entropy_loss.item()
-            else:
-                entropy_loss = 0
 
-            if self.tv_weight > 0 and i == 0:
-                tv_loss = self.tv(proj_hr_feats.square().sum(1, keepdim=True))
-                full_tv_loss += tv_loss.item()
-            else:
-                tv_loss = 0.0
+            tv_loss = 0.0
+            if self.tv_weight > 0:
+                tv_loss = self.tv(hr_feats.square().sum(1, keepdim=True))
 
             loss = rec_loss + self.crf_weight * crf_loss + self.tv_weight * tv_loss - self.filter_ent_weight * entropy_loss
-            full_total_loss += loss.item()
             self.manual_backward(loss)
+            opt.step()
 
-        self.avg.add("loss/crf", full_crf_loss)
-        self.avg.add("loss/ent", full_entropy_loss)
-        self.avg.add("loss/tv", full_tv_loss)
-        self.avg.add("loss/rec", full_rec_loss)
-        self.avg.add("loss/total", full_total_loss)
+            torch.cuda.empty_cache()
 
-        if self.global_step % 100 == 0:
-            self.trainer.save_checkpoint(self.chkpt_dir[:-5] + '/' + self.chkpt_dir[:-5] + f'_{self.global_step}.ckpt')
+            self.avg.add("loss/rec", rec_loss.item())
+            self.avg.add("loss/crf", crf_loss)
+            self.avg.add("loss/ent", entropy_loss)
+            self.avg.add("loss/tv", tv_loss)
+            self.avg.add("loss/total", loss.item())
+            
+            self.avg.logall(self.log)
 
-        self.avg.logall(self.log)
-        if self.global_step < 10:
-            torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=0.0001)
-
-        opt.step()
-
-        return None
+            return None
 
     def validation_step(self, batch, batch_idx):
         with torch.no_grad():
@@ -240,19 +286,60 @@ class JBUFeatUp(pl.LightningModule):
                 hr_jit_feats = apply_jitter(hr_feats, self.max_pad, transform_params)
                 down_jit_feats = self.downsampler(hr_jit_feats, jit_img)
 
-                [red_lr_feats], fit_pca = pca([lr_feats[0].unsqueeze(0)])
-                [red_hr_feats], _ = pca([hr_feats[0].unsqueeze(0)], fit_pca=fit_pca)
+                [red_lr_feats_1], fit_pca = pca([lr_feats[0].unsqueeze(0)])
+                [red_hr_feats_1], _ = pca([hr_feats[0].unsqueeze(0)], fit_pca=fit_pca)
+
+                [red_lr_feats_2], fit_pca = pca([lr_feats[1].unsqueeze(0)])
+                [red_hr_feats_2], _ = pca([hr_feats[1].unsqueeze(0)], fit_pca=fit_pca)
+
+                [red_lr_feats_3], fit_pca = pca([lr_feats[2].unsqueeze(0)])
+                [red_hr_feats_3], _ = pca([hr_feats[2].unsqueeze(0)], fit_pca=fit_pca)
+
                 [red_lr_jit_feats], _ = pca([lr_jit_feats[0].unsqueeze(0)], fit_pca=fit_pca)
                 [red_hr_jit_feats], _ = pca([hr_jit_feats[0].unsqueeze(0)], fit_pca=fit_pca)
                 [red_down_jit_feats], _ = pca([down_jit_feats[0].unsqueeze(0)], fit_pca=fit_pca)
 
-                writer.add_image("viz/image", unnorm(img[0].unsqueeze(0))[0], self.global_step)
-                writer.add_image("viz/lr_feats", red_lr_feats[0], self.global_step)
-                writer.add_image("viz/hr_feats", red_hr_feats[0], self.global_step)
+                writer.add_image("viz/image_1", unnorm(img[0].unsqueeze(0))[0], self.global_step)
+                writer.add_image("viz/lr_feats_1", red_lr_feats_1[0], self.global_step)
+                writer.add_image("viz/hr_feats_1", red_hr_feats_1[0], self.global_step)
+
+                writer.add_image("viz/image_2", unnorm(img[1].unsqueeze(0))[0], self.global_step)
+                writer.add_image("viz/lr_feats_2", red_lr_feats_2[0], self.global_step)
+                writer.add_image("viz/hr_feats_2", red_hr_feats_2[0], self.global_step)
+
+                writer.add_image("viz/image_3", unnorm(img[2].unsqueeze(0))[0], self.global_step)
+                writer.add_image("viz/lr_feats_3", red_lr_feats_3[0], self.global_step)
+                writer.add_image("viz/hr_feats_3", red_hr_feats_3[0], self.global_step)
+
                 writer.add_image("jit_viz/jit_image", unnorm(jit_img[0].unsqueeze(0))[0], self.global_step)
                 writer.add_image("jit_viz/lr_jit_feats", red_lr_jit_feats[0], self.global_step)
                 writer.add_image("jit_viz/hr_jit_feats", red_hr_jit_feats[0], self.global_step)
                 writer.add_image("jit_viz/down_jit_feats", red_down_jit_feats[0], self.global_step)
+
+                if self.val_step == 0:
+                    cwd = os.getcwd()
+                    images_dir = join(cwd, f"images/{self.model_type}_{self.upsampler_name}_{self.loss}")
+                    os.makedirs(images_dir, exist_ok=True)
+                    im_1 = unnorm(img[0].unsqueeze(0))[0]
+                    im_2 = red_lr_feats_1[0]
+                    im_3 = red_hr_feats_1[0]
+                    im_4 = unnorm(img[1].unsqueeze(0))[0]
+                    im_5 = red_lr_feats_2[0]
+                    im_6 = red_hr_feats_2[0]
+                    im_7 = unnorm(img[2].unsqueeze(0))[0]
+                    im_8 = red_lr_feats_3[0]
+                    im_9 = red_hr_feats_3[0]
+                    self.image_save(im_1).save(join(images_dir, "image_1.png"))
+                    self.image_save(im_2).save(join(images_dir, "lr_feats_1.png"))
+                    self.image_save(im_3).save(join(images_dir, "hr_feats_1.png"))
+                    self.image_save(im_4).save(join(images_dir, "image_2.png"))
+                    self.image_save(im_5).save(join(images_dir, "lr_feats_2.png"))
+                    self.image_save(im_6).save(join(images_dir, "hr_feats_2.png"))
+                    self.image_save(im_7).save(join(images_dir, "image_3.png"))
+                    self.image_save(im_8).save(join(images_dir, "lr_feats_3.png"))
+                    self.image_save(im_9).save(join(images_dir, "hr_feats_3.png"))
+                else:
+                    print("Validation Step: ", self.val_step)
 
                 norm_scales = scales[0]
                 norm_scales /= scales.max()
@@ -280,6 +367,7 @@ class JBUFeatUp(pl.LightningModule):
                         self.global_step)
 
                 writer.flush()
+                self.val_step += 1
 
     def configure_optimizers(self):
         all_params = []
@@ -292,7 +380,7 @@ class JBUFeatUp(pl.LightningModule):
         return torch.optim.Adam(all_params, lr=self.lr)
 
 
-@hydra.main(config_path="configs", config_name="jbu_upsampler.yaml")
+@hydra.main(config_path="configs", config_name="jbu_upsampler.yaml", version_base="1.1")
 def my_app(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     print(cfg.output_root)
@@ -332,7 +420,8 @@ def my_app(cfg: DictConfig) -> None:
         tv_weight=cfg.tv_weight,
         upsampler=cfg.upsampler_type,
         downsampler=cfg.downsampler_type,
-        chkpt_dir=chkpt_dir
+        chkpt_dir=chkpt_dir,
+        loss = cfg.loss
     )
 
     transform = T.Compose([
@@ -348,25 +437,29 @@ def my_app(cfg: DictConfig) -> None:
         transform=transform,
         target_transform=None,
         include_labels=False)
+    
+    val_dataset = TripleImageDataset(indices=[10, 20, 31], ds=dataset)
 
     loader = DataLoader(
         dataset, cfg.batch_size, shuffle=True, num_workers=cfg.num_workers)
+    # val_loader = DataLoader(
+    #     SingleImageDataset(0, dataset, 1), 1, shuffle=False, num_workers=cfg.num_workers)
     val_loader = DataLoader(
-        SingleImageDataset(0, dataset, 1), 1, shuffle=False, num_workers=cfg.num_workers)
+        val_dataset, 3, shuffle=False, num_workers=cfg.num_workers)
 
     tb_logger = TensorBoardLogger(log_dir, default_hp_metric=False)
-    callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_val_epochs =1)]
+    callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_epochs=1)]
 
     trainer = Trainer(
-        accelerator='ddp',
+        accelerator='gpu',
         #strategy="ddp",
-        gpus =cfg.num_gpus,
+        devices=cfg.num_gpus,
         max_epochs=cfg.epochs,
         logger=tb_logger,
         val_check_interval=100,
         log_every_n_steps=10,
         callbacks=callbacks,
-        reload_dataloaders_every_epoch=True,
+        reload_dataloaders_every_n_epochs=1,
     )
 
     gc.collect()

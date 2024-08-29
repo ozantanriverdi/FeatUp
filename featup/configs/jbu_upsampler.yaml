@@ -12,7 +12,7 @@ activation_type: "token"
 
 # Upsampling args
 outlier_detection: True
-upsampler_type: "jbu_stack"
+upsampler_type: "unet_guided" # jbu_stack | transformer | unet_guided | bilinear
 downsampler_type: "attention"
 max_pad: 20
 max_zoom: 2
@@ -21,6 +21,7 @@ random_projection: 30
 crf_weight: 0.001
 filter_ent_weight: 0.0
 tv_weight: 0.0
+loss: "multiview_loss" # multiview_loss | simple_loss
 
 implicit_sup_weight: 1.0
 
@@ -28,7 +29,7 @@ implicit_sup_weight: 1.0
 batch_size: 2
 epochs: 1
 num_gpus: 1
-num_workers: 24
+num_workers: 12
 lr: 1e-3
 
 # No need to change
