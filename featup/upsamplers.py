@@ -305,60 +305,28 @@ class TransformerUpsampler(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         
-        # Embedding layer
+
         self.embedding = nn.Linear(input_dim, hidden_dim)
-        
-        # Positional encoding
         self.pos_encoding = PositionalEncoding(hidden_dim, dropout)
-        
-        # Transformer layers
         encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        
-        # Output projection
+
         self.output_proj = nn.Linear(hidden_dim, input_dim)
-        
-        # Upsampling layers
-        # self.upsample = nn.Sequential(
-        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
-        #     nn.LeakyReLU(0.2, inplace=True),
-        #     nn.PixelShuffle(2),
-        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
-        #     nn.LeakyReLU(0.2, inplace=True),
-        #     nn.PixelShuffle(2),
-        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
-        #     nn.LeakyReLU(0.2, inplace=True),
-        #     nn.PixelShuffle(2),
-        #     nn.Conv2d(input_dim, input_dim * 4, kernel_size=3, padding=1),
-        #     nn.LeakyReLU(0.2, inplace=True),
-        #     nn.PixelShuffle(2),
-        # )
-        
-        # Final convolution
+
         self.final_conv = nn.Conv2d(input_dim, input_dim, kernel_size=3, padding=1)
         
     def forward(self, x, img):
         # Input shape: [1, 384, 14, 14]
         batch_size, c, h, w = x.shape
-        
-        # Reshape and transpose for transformer input
         x_trans = x.view(batch_size, c, -1).permute(2, 0, 1)  # [196, 1, 384]
-        
-        # Embedding and positional encoding
         x_trans = self.embedding(x_trans)
         x_trans = self.pos_encoding(x_trans)
-        
-        # Transformer encoding
         x_trans = self.transformer_encoder(x_trans)
-        
-        # Output projection and reshape
         x_trans = self.output_proj(x_trans)
         x_trans = x_trans.permute(1, 2, 0).view(batch_size, c, h, w)  # [1, 384, 14, 14]
         
-        # Combine transformer output with original input
         x = x + x_trans
-        
-        # Upsampling
+
         x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
         
         # Final convolution
@@ -419,10 +387,10 @@ class UNetUpsampler2(nn.Module):
         self.down_convs = nn.ModuleList()
         self.up_convs = nn.ModuleList()
         
-        # Determine the number of downsampling steps based on input size
-        self.num_layers = min(int(math.log2(14)), 3)  # Maximum 3 downsampling steps for 14x14 input
+        # Maximum 3 downsampling steps for 14x14 input
+        self.num_layers = min(int(math.log2(14)), 3)  
         
-        # Downsampling path
+
         self.channels = [64, 128, 256, 512]
         for i in range(self.num_layers):
             self.down_convs.append(nn.Sequential(
@@ -433,7 +401,7 @@ class UNetUpsampler2(nn.Module):
         # Middle
         self.middle_conv = DoubleConv(self.channels[self.num_layers], self.channels[self.num_layers])
 
-        # Upsampling path
+
         for i in range(self.num_layers):
             in_channels = self.channels[self.num_layers-i] + self.channels[self.num_layers-i-1]
             out_channels = self.channels[self.num_layers-i-1]
@@ -442,7 +410,6 @@ class UNetUpsampler2(nn.Module):
                 DoubleConv(in_channels, out_channels)
             ))
 
-        # Additional upsampling to reach the target scale factor
         self.final_upsample = nn.Upsample(scale_factor=scale_factor // (2**self.num_layers), 
                                           mode='bilinear', align_corners=True)
         self.final_conv = nn.Conv2d(64, 384, kernel_size=1)
@@ -457,26 +424,21 @@ class UNetUpsampler2(nn.Module):
         x1 = self.input_conv(x)
         #print(f"After input conv: {x1.shape}")
         
-        # Downsampling
         x_down = [x1]
         for i, down_conv in enumerate(self.down_convs):
             x_down.append(down_conv(x_down[-1]))
             #print(f"After down conv {i+1}: {x_down[-1].shape}")
-
-        # Middle
         x = self.middle_conv(x_down[-1])
         #print(f"After middle conv: {x.shape}")
 
-        # Upsampling
         for i, up_conv in enumerate(self.up_convs):
-            x = up_conv[0](x)  # Upsample
+            x = up_conv[0](x)  
             #print(f"After upsample {i+1}: {x.shape}")
-            # Ensure the sizes match for skip connection
             if x.size()[2:] != x_down[-(i+2)].size()[2:]:
                 x = F.interpolate(x, size=x_down[-(i+2)].size()[2:], mode='bilinear', align_corners=True)
             x = torch.cat([x, x_down[-(i+2)]], dim=1)
             #print(f"After concat {i+1}: {x.shape}")
-            x = up_conv[1](x)  # DoubleConv
+            x = up_conv[1](x)
             #print(f"After up conv {i+1}: {x.shape}")
 
         x = self.final_upsample(x)

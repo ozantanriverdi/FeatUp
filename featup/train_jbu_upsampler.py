@@ -133,6 +133,7 @@ class JBUFeatUp(pl.LightningModule):
             else:
                 img, _ = batch
             lr_feats = self.model(img)
+            #print("1. ", lr_feats.shape)
 
         if self.loss == 'multiview_loss':
             full_rec_loss = 0.0
@@ -142,15 +143,22 @@ class JBUFeatUp(pl.LightningModule):
             full_total_loss = 0.0
             for i in range(self.n_jitters):
                 hr_feats = self.upsampler(lr_feats, img)
+                #print("2. ", hr_feats.shape)
 
                 if hr_feats.shape[2] != img.shape[2]:
                     hr_feats = torch.nn.functional.interpolate(hr_feats, img.shape[2:], mode="bilinear")
 
+                if lr_feats.shape[2] != 14:
+                    lr_feats = torch.nn.functional.interpolate(lr_feats, 14, mode="bilinear")
+                #print("3. ", lr_feats.shape) # torch.Size([2, 2048, 14, 14])
+                #print("4. ", hr_feats.shape) # torch.Size([2, 2048, 224, 224])
                 with torch.no_grad():
                     transform_params = sample_transform(
                         True, self.max_pad, self.max_zoom, img.shape[2], img.shape[3])
                     jit_img = apply_jitter(img, self.max_pad, transform_params)
                     lr_jit_feats = self.model(jit_img)
+                    if lr_jit_feats.shape[2] != 14:
+                        lr_jit_feats = torch.nn.functional.interpolate(lr_jit_feats, 14, mode="bilinear")
 
                 if self.random_projection is not None:
                     proj = torch.randn(lr_feats.shape[0],
@@ -441,11 +449,11 @@ def my_app(cfg: DictConfig) -> None:
     val_dataset = TripleImageDataset(indices=[23, 311, 449], ds=dataset)
 
     loader = DataLoader(
-        dataset, cfg.batch_size, shuffle=True, num_workers=cfg.num_workers)
+        dataset, cfg.batch_size, shuffle=True, num_workers=cfg.num_workers, persistent_workers=True)
     # val_loader = DataLoader(
     #     SingleImageDataset(0, dataset, 1), 1, shuffle=False, num_workers=cfg.num_workers)
     val_loader = DataLoader(
-        val_dataset, 3, shuffle=False, num_workers=cfg.num_workers)
+        val_dataset, 3, shuffle=False, num_workers=cfg.num_workers, persistent_workers=True)
 
     tb_logger = TensorBoardLogger(log_dir, default_hp_metric=False)
     callbacks = [ModelCheckpoint(chkpt_dir[:-5], every_n_epochs=1)]

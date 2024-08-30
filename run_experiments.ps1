@@ -53,16 +53,18 @@ hydra:
 # Start in Featup
 cd featup
 
-$loss = "simple_loss"
-Write-ConfigFile $default_model $default_upsampler $loss
+# maskclip - jbu - multiview
+$model = "maskclip"
+Write-ConfigFile $model $default_upsampler $default_loss
 python train_jbu_upsampler.py
 
+# maskclip - transformer - multiview
 $upsampler = "transformer"
-Write-ConfigFile $default_model $upsampler $default_loss
+Write-ConfigFile $model $upsampler $default_loss
 python train_jbu_upsampler.py
 
-$upsampler = "unet_guided"
-Write-ConfigFile $default_model $upsampler $default_loss
-python train_jbu_upsampler.py
+# $upsampler = "unet_guided"
+# Write-ConfigFile $default_model $upsampler $default_loss
+# python train_jbu_upsampler.py
 
 Write-ConfigFile $default_model $default_upsampler $default_loss

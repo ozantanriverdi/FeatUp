@@ -10,7 +10,7 @@ from omegaconf import OmegaConf
 from pytorch_lightning import Trainer
 from pytorch_lightning import seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.utilities.seed import seed_everything
+from pytorch_lightning import seed_everything
 from torch.utils.data import DataLoader
 from torchmetrics.classification import Accuracy, JaccardIndex
 
